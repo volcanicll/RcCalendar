@@ -1,13 +1,17 @@
 import React, { useEffect, useState, useRef } from "react";
 import dayjs from "dayjs";
 import updateLocale from "dayjs/plugin/updateLocale";
-import "./style.scss";
+import "dayjs/locale/en";
+import {
+  dayjsType,
+  generateMonthDataType,
+  generateWeekDataType,
+  toutchType,
+  weekType,
+} from "./interface";
+import styles from "./App.module.less";
 
 dayjs.extend(updateLocale);
-
-dayjs.updateLocale("en", {
-  weekStart: 1,
-});
 
 const throttle = (fun: (val: any) => void, time: number) => {
   let delay = 0;
@@ -20,70 +24,21 @@ const throttle = (fun: (val: any) => void, time: number) => {
   };
 };
 
-type weekType = {
-  id: number;
-  name: string;
-};
-type toutchType = { x: number; y: number };
-
-type dayjsType = Array<dayjs.Dayjs>;
-
-type generateWeekDataType = {
-  currenWeekFirstDay: dayjs.Dayjs;
-  generateWeekDateList: Array<dayjsType>;
-};
-
-type generateMonthDataType = {
-  currentMonthFirstDay: dayjs.Dayjs;
-  generateMonthDateList: Array<dayjsType>;
-};
-
-const weekList: Array<weekType> = [
-  {
-    id: 1,
-    name: "一",
-  },
-  {
-    id: 2,
-    name: "二",
-  },
-  {
-    id: 3,
-    name: "三",
-  },
-  {
-    id: 4,
-    name: "四",
-  },
-  {
-    id: 5,
-    name: "五",
-  },
-  {
-    id: 6,
-    name: "六",
-  },
-  {
-    id: 0,
-    name: "日",
-  },
-];
-
 /**
  *
  * @param {*} dayjsDate dayjs对象
  */
 const generateMonthData = (dayjsDate: dayjs.Dayjs): generateMonthDataType => {
-  //返回当前月份的第一天
+  // 返回当前月份的第一天
   const currentMonthFirstDay = dayjsDate.startOf("month");
   // 返回当月的第一周第一天
   const currentMonthStartDay = currentMonthFirstDay.startOf("week");
 
-  //上一个月
+  // 上一个月
   const prevMonthFirstDay = currentMonthFirstDay.subtract(1, "month");
   const prevMonthStartDay = prevMonthFirstDay.startOf("week");
 
-  //下一个月
+  // 下一个月
   const nextMonthFirstDay = currentMonthFirstDay.add(1, "month");
   const nextMonthStartDay = nextMonthFirstDay.startOf("week");
 
@@ -127,7 +82,42 @@ const generateWeekData = (dayjsDate: dayjs.Dayjs): generateWeekDataType => {
   };
 };
 
-const RcCalendar = () => {
+/* 处理选中日期格式 */
+export const handelFormtDate = (
+  date: dayjs.Dayjs | string,
+  exp: string
+): string => {
+  return dayjs(date).format(exp);
+};
+
+/* 周一或周日为第一 */
+const generateWeekList = (firstDayFromMonday: boolean): Array<weekType> => {
+  const daysOfWeek: Array<string> = ["日", "一", "二", "三", "四", "五", "六"];
+  const startIndex = firstDayFromMonday ? 1 : 0;
+  return Array.from({ length: 7 }, (_, i) => ({
+    id: (startIndex + i) % 7,
+    name: daysOfWeek[(startIndex + i) % 7],
+  }));
+};
+
+interface RcCalendarProps {
+  firstDayFromMonday?: boolean;
+  expandable?: boolean;
+  showHeader?: boolean;
+  mode?: "month" | "week";
+  onSelect?: (date: Date) => void;
+  onChange?: (date: string) => void;
+  dayContent?: (date: dayjs.Dayjs) => React.ReactNode;
+}
+
+const RcCalendar = ({
+  firstDayFromMonday = true,
+  expandable = false,
+  showHeader = false,
+  mode = "week",
+  dayContent,
+  onChange,
+}: RcCalendarProps) => {
   const { current } = useRef({
     currentDate: dayjs().format("YYYY-MM-DD"),
     isTouch: false,
@@ -136,7 +126,12 @@ const RcCalendar = () => {
     calendarRef: { offsetWidth: 0 },
   });
 
+  dayjs.updateLocale("en", {
+    weekStart: firstDayFromMonday ? 1 : 0,
+  });
+
   const dayjsDate = dayjs(current.currentDate);
+
   const { currentMonthFirstDay, generateMonthDateList = [] } =
     generateMonthData(dayjsDate);
   const { currenWeekFirstDay, generateWeekDateList = [] } =
@@ -154,14 +149,8 @@ const RcCalendar = () => {
   const [selectDate, setSelectDate] = useState<string>(current.currentDate);
   const [moveIndex, setMoveIndex] = useState<number>(0);
   const [touch, setTouch] = useState<toutchType>({ x: 0, y: 0 }); //Y轴
-  const [isMountView, setIsMountView] = useState<boolean>(false); //true/周日历 false/月日历
+  const [isMountView, setIsMountView] = useState<boolean>(mode === "week"); //true/周日历 false/月日历
   const [weekInd, selectWeekInd] = useState<number>(0); //记录周日历选中的index
-
-  //获取周
-  const getWeekDate = (cDate: string): weekType => {
-    const day = new Date(cDate).getDay();
-    return weekList[day];
-  };
 
   const handleTouchStart = (e: any) => {
     e.stopPropagation();
@@ -228,7 +217,7 @@ const RcCalendar = () => {
     setTouch({ x: 0, y: 0 });
   };
 
-  //更新月日历视图
+  // 更新月日历视图
   const updateMounthView = (
     index: number,
     currentFirstDay: any,
@@ -239,7 +228,7 @@ const RcCalendar = () => {
     setMountDateList(dateList);
   };
 
-  //更新周日历视图
+  // 更新周日历视图
   const updateWeekView = (
     index: number,
     currentFirstDay: any,
@@ -250,11 +239,7 @@ const RcCalendar = () => {
     setWeekDateList(dateList);
   };
 
-  const handelFormtDate = (date: dayjs.Dayjs | string, exp: string): string => {
-    return dayjs(date).format(exp);
-  };
-
-  //日历选中逻辑
+  // 日历选中逻辑
   const handelSelectDate = (
     formtDate: string,
     isOtherMonthDay: boolean,
@@ -285,10 +270,10 @@ const RcCalendar = () => {
     setSelectDate(formtDate);
   };
 
-  //渲染选中样式
+  // 渲染选中样式
   const renderClassName = (formtDate: string): string => {
-    if (selectDate === formtDate) return "selectDay";
-    if (formtDate === current.currentDate) return "currentDay";
+    if (selectDate === formtDate) return styles.selectDay;
+    if (formtDate === current.currentDate) return styles.currentDay;
     return "";
   };
 
@@ -310,7 +295,7 @@ const RcCalendar = () => {
     setSelectDate(current.currentDate);
   };
 
-  //月日历/周日历切换
+  // 月日历/周日历切换
   const handelIsMountView = () => {
     const dayjsDate = dayjs(selectDate);
     const { generateWeekDateList = [], generateMonthDateList = [] } = {
@@ -332,7 +317,7 @@ const RcCalendar = () => {
     setIsMountView(flag);
   };
 
-  //设置周日历选中的位置
+  // 设置周日历选中的位置
   const handelSetWeekIndex = (
     selectDate: string | dayjs.Dayjs,
     generateWeekDateList: Array<{ [key: string]: any }>
@@ -346,8 +331,21 @@ const RcCalendar = () => {
   };
 
   useEffect(() => {
+    if (selectDate) {
+      onChange?.(selectDate);
+    }
+  }, [selectDate]);
+
+  useEffect(() => {
+    /* 更新周开始为周一或周天 */
+    // dayjs.updateLocale('en', {
+    //   weekStart: firstDayFromMonday ? 1 : 0,
+    // });
+  }, [firstDayFromMonday]);
+
+  useEffect(() => {
     if (!isMountView) {
-      //月日历
+      // 月日历
       let currentM = handelFormtDate(mounthFirstDay, "YYYY-MM-DD");
       setSelectDate(currentM);
     }
@@ -358,104 +356,143 @@ const RcCalendar = () => {
     setSelectDate(current.currentDate);
   }, []);
 
-  return (
-    <div className="calendar_comp">
-      <header>
-        <span>
-          {handelFormtDate(
-            isMountView ? weekFirstDay : mounthFirstDay,
-            "YYYY年MM月"
-          )}
-        </span>
-        <span
-          onClick={backCurrentDay}
-          style={{ display: showBackCurrentDay ? "initial" : "none" }}
-        >
-          回到今天
-        </span>
-      </header>
-      <p className="week_list">
-        {weekList.map((item) => {
-          return <span key={item.id}>{item.name}</span>;
-        })}
-      </p>
-      <div
-        className={`calendar_comp_wrap ${isMountView ? "pushHei" : "pullHei"}`}
-        ref={(e: any) => (current.calendarRef = e)}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div
-          className="calendar_comp_section"
-          style={{
-            transform: `translateX(${-moveIndex * 100}%)`,
-          }}
-        >
-          {(isMountView ? weekDateList : mountDateList).map((item, index) => {
-            return (
-              <ul
-                key={index}
-                className="calendar_list_day"
-                style={{
-                  transform: `translateX(${
-                    (index - 1 + moveIndex + (current.isTouch ? touch.x : 0)) *
-                    100
-                  }%)`,
-                  transitionDuration: `${current.isTouch ? 0 : 0.3}s`,
-                }}
-              >
-                {item.map((date, ind) => {
-                  const isOtherMonthDay =
-                    isMountView || date.isSame(mounthFirstDay, "month");
-                  const formtDate = handelFormtDate(date, "YYYY-MM-DD");
+  const renderDayContent = (date: dayjs.Dayjs) => {
+    if (dayContent) {
+      return dayContent(date);
+    }
+    return date.format("DD");
+  };
 
+  return (
+    <div className={styles.scheduleViewWrap}>
+      <div className={styles.scheduleListSection}>
+        <div className={styles.calendarComp}>
+          {showHeader && (
+            <header>
+              <span>
+                {handelFormtDate(
+                  isMountView ? weekFirstDay : mounthFirstDay,
+                  "YYYY年MM月"
+                )}
+              </span>
+              <span
+                onClick={backCurrentDay}
+                style={{ display: showBackCurrentDay ? "initial" : "none" }}
+              >
+                回到今天
+              </span>
+            </header>
+          )}
+          <div className={styles.weekList}>
+            {generateWeekList(firstDayFromMonday).map((item) => {
+              return <span key={item.id}>{item.name}</span>;
+            })}
+          </div>
+          <div
+            className={`${styles.calendarCompWrap} ${
+              isMountView ? styles.pushHei : styles.pullHei
+            }`}
+            ref={(e: any) => (current.calendarRef = e)}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div
+              className={styles.calendarCompSection}
+              style={{
+                transform: `translateX(${-moveIndex * 100}%)`,
+              }}
+            >
+              {(isMountView ? weekDateList : mountDateList).map(
+                (item, index) => {
                   return (
-                    <li
-                      key={ind}
-                      onClick={() => {
-                        handelSelectDate(formtDate, isOtherMonthDay, ind);
+                    <div
+                      key={index}
+                      className={styles.calendarListDay}
+                      style={{
+                        transform: `translateX(${
+                          (index -
+                            1 +
+                            moveIndex +
+                            (current.isTouch ? touch.x : 0)) *
+                          100
+                        }%)`,
+                        transitionDuration: `${current.isTouch ? 0 : 0.3}s`,
                       }}
-                      style={{ color: isOtherMonthDay ? "#333333" : "#CCCCCC" }}
                     >
-                      <span className={renderClassName(formtDate)}>
-                        {date.format("DD")}
-                      </span>
-                    </li>
+                      {item.map((date, ind) => {
+                        const isOtherMonthDay =
+                          isMountView || date.isSame(mounthFirstDay, "month");
+                        const formtDate = handelFormtDate(date, "YYYY-MM-DD");
+
+                        return (
+                          <div
+                            key={ind}
+                            onClick={() => {
+                              handelSelectDate(formtDate, isOtherMonthDay, ind);
+                            }}
+                            style={{
+                              color: isOtherMonthDay ? "#333333" : "#CCCCCC",
+                            }}
+                          >
+                            <span
+                              className={`${renderClassName(formtDate)} ${
+                                styles.dayCntent
+                              }`}
+                            >
+                              {renderDayContent(date)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   );
-                })}
-              </ul>
-            );
-          })}
+                }
+              )}
+            </div>
+          </div>
+          {expandable && (
+            <span
+              className={styles.calendarPull}
+              onClick={() => {
+                handelIsMountView();
+              }}
+            >
+              {isMountView ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m18 15-6-6-6 6" />
+                </svg>
+              )}
+            </span>
+          )}
         </div>
       </div>
-      {/* <img className='calendar_pull' src={`/images/${isMountView ? 'calendar_push' : 'calendarpull'}.svg`} alt="" /> */}
-      <span
-        className="calendar_pull"
-        onClick={() => {
-          handelIsMountView();
-        }}
-      >
-        {isMountView ? "展开" : "收起"}
-      </span>
-      <p className="current_day">
-        {handelFormtDate(selectDate, "MM月DD日")}{" "}
-        {`周${getWeekDate(selectDate)?.name}`}{" "}
-      </p>
     </div>
   );
 };
 
-const ScheduleList = () => {
-  return (
-    <>
-      <div className="schedule_view_wrap">
-        <div className="schedule_list_section">
-          {/* 日历组件 */}
-          <RcCalendar />
-        </div>
-      </div>
-    </>
-  );
-};
-export default ScheduleList;
+export default RcCalendar;

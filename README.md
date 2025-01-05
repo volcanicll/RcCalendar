@@ -1,5 +1,1 @@
-```js
-<RcCalendar />
-```
-
-![日历](./src//assets/base.png)
+![calendar](./src//assets/calendar.gif)

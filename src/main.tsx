@@ -12,7 +12,7 @@ createRoot(document.getElementById("root")!).render(
         justifyContent: "center",
       }}
     >
-      <App showHeader expandable />
+      <App mode="month" expandable showHeader />
     </div>
   </StrictMode>
 );

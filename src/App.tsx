@@ -396,6 +396,7 @@ const RcCalendar = ({
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            data-testid="calendar-wrap"
           >
             <div
               className={styles.calendarCompSection}

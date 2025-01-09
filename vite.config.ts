@@ -7,9 +7,14 @@ export default defineConfig({
   build: {
     lib: {
       entry: "src/index.ts",
-      name: "rc-cadenar",
+      name: "rc-calendar",
       formats: ["es", "cjs", "umd"],
       fileName: (format) => `rcCalendar.${format}.js`,
     },
+  },
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: "./src/test/setup.ts",
   },
 });

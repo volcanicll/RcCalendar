@@ -7,10 +7,21 @@ export default defineConfig({
   build: {
     lib: {
       entry: "src/index.ts",
-      name: "rc-calendar",
-      formats: ["es", "cjs", "umd"],
-      fileName: (format) => `rcCalendar.${format}.js`,
+      name: "VolcanicllCalendar",
+      formats: ["es", "umd"],
+      fileName: (format) => `index.${format}.js`,
     },
+    rollupOptions: {
+      external: ["react", "react-dom"],
+      output: {
+        globals: {
+          react: "React",
+          "react-dom": "ReactDOM",
+        },
+      },
+    },
+    sourcemap: true,
+    minify: true,
   },
   test: {
     environment: "jsdom",

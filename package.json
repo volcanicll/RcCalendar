@@ -1,25 +1,36 @@
 {
-  "name": "rc-calendar",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@volcanicll/react-calendar",
+  "version": "1.0.0",
+  "description": "A React Calendar Component",
   "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc && vite build",
+    "prepare": "npm run build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest"
   },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
   "dependencies": {
+    "dayjs": "^1.11.13"
+  },
+  "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
-    "dayjs": "^1.11.13",
     "jsdom": "^25.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "vitest": "^2.1.8"
-  },
-  "devDependencies": {
+    "vitest": "^2.1.8",
     "@eslint/js": "^9.17.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
@@ -32,5 +43,16 @@
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5"
+  },
+  "keywords": [
+    "react",
+    "calendar",
+    "component"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/volcanicll/RcCalendar"
   }
 }

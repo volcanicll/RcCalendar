@@ -1,1 +1,1 @@
-export { default as rcCalendar } from "./App";
+export { default as Calendar } from "./App";

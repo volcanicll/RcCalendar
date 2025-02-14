@@ -1,14 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   build: {
     lib: {
-      entry: "src/index.ts",
+      entry: ["src/index.ts"],
       name: "VolcanicllCalendar",
-      formats: ["es", "umd"],
+      formats: ["es", "cjs", "umd"],
       fileName: (format) => `index.${format}.js`,
     },
     rollupOptions: {
@@ -18,14 +18,11 @@ export default defineConfig({
           react: "React",
           "react-dom": "ReactDOM",
         },
+        exports: "named",
       },
     },
-    sourcemap: true,
-    minify: true,
-  },
-  test: {
-    environment: "jsdom",
-    globals: true,
-    setupFiles: "./src/test/setup.ts",
+    // sourcemap: true,
+    minify: "esbuild",
+    target: "es2015",
   },
 });

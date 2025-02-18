@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App.tsx";
+import { Calendar } from "./index";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -12,7 +12,7 @@ createRoot(document.getElementById("root")!).render(
         justifyContent: "center",
       }}
     >
-      <App mode="month" expandable showHeader />
+      <Calendar mode="month" expandable showHeader />
     </div>
   </StrictMode>
 );
